@@ -40,8 +40,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [session, setSession] = useState<UserSession | null>(null);
   const [isChecking, setIsChecking] = useState(true);
+
+  const notifications = [
+    { id: 1, title: "Stok Menipis", desc: "Minyak Goreng Bimoli sisa 2 pcs", time: "5 mnt lalu", unread: true },
+    { id: 2, title: "Laporan Mingguan", desc: "Penjualan naik 15% minggu ini", time: "2 jam lalu", unread: true },
+    { id: 3, title: "Update Sistem", desc: "Fitur printer kasir telah aktif", time: "1 hari lalu", unread: false },
+  ];
 
   useEffect(() => {
     // If it is the Landing Page or Login page, skip heavy auth block
@@ -222,10 +229,81 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
           {/* Right section: Profile & Notification */}
           <div className="flex items-center gap-3">
-            <button className="p-2 rounded-xl text-slate-500 hover:bg-slate-50 dark:hover:bg-zinc-800/50 dark:text-zinc-400 transition-colors relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-rose-500 border border-white" />
-            </button>
+            <div className="relative">
+              <button 
+                onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                className="p-2 rounded-xl text-slate-500 hover:bg-slate-50 dark:hover:bg-zinc-800/50 dark:text-zinc-400 transition-colors relative"
+              >
+                <Bell className="h-5 w-5" />
+                {notifications.some(n => n.unread) && (
+                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-rose-500 border border-white dark:border-zinc-950" />
+                )}
+              </button>
+
+              <AnimatePresence>
+                {isNotificationOpen && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-40"
+                      onClick={() => setIsNotificationOpen(false)}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 mt-2 w-80 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-slate-100 dark:border-zinc-800 z-50 overflow-hidden"
+                    >
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-zinc-800/80 bg-slate-50/50 dark:bg-zinc-900/50">
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white">Notifikasi</h3>
+                        <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400 px-2 py-0.5 rounded-full">
+                          {notifications.filter(n => n.unread).length} Baru
+                        </span>
+                      </div>
+                      <div className="max-h-80 overflow-y-auto">
+                        {notifications.length > 0 ? (
+                          <div className="divide-y divide-slate-50 dark:divide-zinc-800/50">
+                            {notifications.map((notif) => (
+                              <div 
+                                key={notif.id} 
+                                className={cn(
+                                  "px-4 py-3 hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer",
+                                  notif.unread ? "bg-white dark:bg-zinc-900" : "bg-slate-50/30 dark:bg-zinc-900/30 opacity-75"
+                                )}
+                              >
+                                <div className="flex justify-between items-start mb-1">
+                                  <h4 className={cn("text-xs font-semibold", notif.unread ? "text-slate-900 dark:text-white" : "text-slate-600 dark:text-zinc-400")}>
+                                    {notif.title}
+                                  </h4>
+                                  <span className="text-[9px] text-slate-400 font-medium whitespace-nowrap ml-2">
+                                    {notif.time}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-slate-500 dark:text-zinc-400 leading-snug">
+                                  {notif.desc}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="px-4 py-8 text-center text-sm text-slate-500">
+                            Tidak ada notifikasi baru
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-2 border-t border-slate-100 dark:border-zinc-800/80 bg-slate-50/50 dark:bg-zinc-900/50">
+                        <button 
+                          className="w-full py-1.5 text-xs font-semibold text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                          onClick={() => setIsNotificationOpen(false)}
+                        >
+                          Tutup
+                        </button>
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
 
             {/* Profile info - Desktop only */}
             <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-zinc-800">
