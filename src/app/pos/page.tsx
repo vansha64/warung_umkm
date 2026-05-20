@@ -15,7 +15,8 @@ import {
   X,
   ChevronUp,
   Zap,
-  HelpCircle
+  HelpCircle,
+  Printer
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -25,6 +26,7 @@ import {
 } from "@/lib/productsStore";
 import { addLocalOrder } from "@/lib/ordersStore";
 import { logAudit } from "@/lib/auditStore";
+import { printReceipt } from "@/lib/printUtils";
 
 interface CartItem {
   product: Product;
@@ -183,11 +185,7 @@ export default function PosPage() {
   const total = subtotal;
   const totalItems = cart.reduce((sum, i) => sum + i.quantity, 0);
 
-  const handleCheckoutWhatsApp = () => {
-    if (cart.length === 0) return;
-    
-    const finalCustomerName = customerName.trim() || "Umum";
-
+  const processTransaction = (finalCustomerName: string) => {
     // 1. Save to Order History
     addLocalOrder({
       customerName: finalCustomerName,
@@ -217,6 +215,13 @@ export default function PosPage() {
       time: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
     };
     localStorage.setItem("warunghub_finances", JSON.stringify([newTransaction, ...currentFinances]));
+  };
+
+  const handleCheckoutWhatsApp = () => {
+    if (cart.length === 0) return;
+    const finalCustomerName = customerName.trim() || "Umum";
+    
+    processTransaction(finalCustomerName);
 
     // 4. Professional WhatsApp checkout message
     const storeName = "Warung Berkah Jaya";
@@ -245,7 +250,22 @@ export default function PosPage() {
     const whatsappUrl = `https://wa.me/?text=${encodedText}`;
     
     window.open(whatsappUrl, "_blank");
+    completeCheckoutUI();
+  };
 
+  const handleCheckoutPrint = () => {
+    if (cart.length === 0) return;
+    const finalCustomerName = customerName.trim() || "Umum";
+    
+    processTransaction(finalCustomerName);
+
+    // Print receipt
+    printReceipt("Warung Berkah Jaya", finalCustomerName, cart, total);
+
+    completeCheckoutUI();
+  };
+
+  const completeCheckoutUI = () => {
     setCheckoutSuccess(true);
     setTimeout(() => {
       setCheckoutSuccess(false);
@@ -356,19 +376,36 @@ export default function PosPage() {
               Pesanan Berhasil!
             </motion.div>
           ) : (
-            <button
-              onClick={handleCheckoutWhatsApp}
-              disabled={cart.length === 0}
-              className={cn(
-                "w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-lg active:scale-[0.98]",
-                cart.length === 0
-                  ? "bg-slate-300 dark:bg-zinc-800 text-slate-500 cursor-not-allowed shadow-none"
-                  : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20 cursor-pointer"
-              )}
-            >
-              <Send className="h-4.5 w-4.5" />
-              Kirim Nota via WA
-            </button>
+            <div className="flex gap-2 w-full">
+              <button
+                onClick={handleCheckoutPrint}
+                disabled={cart.length === 0}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-lg active:scale-[0.98]",
+                  cart.length === 0
+                    ? "bg-slate-300 dark:bg-zinc-800 text-slate-500 cursor-not-allowed shadow-none"
+                    : "bg-slate-800 hover:bg-slate-900 shadow-slate-900/20 cursor-pointer"
+                )}
+                title="Cetak Struk"
+              >
+                <Printer className="h-4.5 w-4.5" />
+                Cetak
+              </button>
+              <button
+                onClick={handleCheckoutWhatsApp}
+                disabled={cart.length === 0}
+                className={cn(
+                  "flex-[2] flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-lg active:scale-[0.98]",
+                  cart.length === 0
+                    ? "bg-slate-300 dark:bg-zinc-800 text-slate-500 cursor-not-allowed shadow-none"
+                    : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20 cursor-pointer"
+                )}
+                title="Kirim Nota via WA"
+              >
+                <Send className="h-4.5 w-4.5" />
+                Kirim via WA
+              </button>
+            </div>
           )}
         </AnimatePresence>
       </div>

@@ -21,6 +21,7 @@ import {
   updateOrderStatus
 } from "@/lib/ordersStore";
 import { logAudit } from "@/lib/auditStore";
+import { printReceipt } from "@/lib/printUtils";
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -199,7 +200,14 @@ export default function OrdersPage() {
 
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => handleResendWhatsApp(o)}
+                      onClick={(e) => { e.stopPropagation(); printReceipt("Warung Berkah Jaya", o.customerName, o.items, o.total, o.id, o.date, o.time); }}
+                      className="p-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors shadow-sm bg-white dark:bg-zinc-900"
+                      title="Cetak Struk"
+                    >
+                      <Printer className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleResendWhatsApp(o); }}
                       className="p-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors shadow-sm bg-white dark:bg-zinc-900"
                       title="Kirim Nota via WA"
                     >
@@ -296,14 +304,21 @@ export default function OrdersPage() {
                   className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-all text-xs font-bold shadow-sm"
                 >
                   <RefreshCcw className="h-4 w-4" />
-                  Repeat Order
+                  Ulangi
+                </button>
+                <button
+                  onClick={() => printReceipt("Warung Berkah Jaya", selectedOrder.customerName, selectedOrder.items, selectedOrder.total, selectedOrder.id, selectedOrder.date, selectedOrder.time)}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-800 hover:bg-slate-900 text-white transition-all text-xs font-bold shadow-sm"
+                >
+                  <Printer className="h-4 w-4" />
+                  Cetak
                 </button>
                 <button
                   onClick={() => handleResendWhatsApp(selectedOrder)}
                   className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 transition-all text-xs font-bold"
                 >
                   <MessageSquare className="h-4 w-4" />
-                  Kirim Nota WA
+                  Kirim WA
                 </button>
               </div>
             </div>
