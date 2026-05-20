@@ -9,21 +9,22 @@ const formatPrice = (num: number) => {
   }).format(num);
 };
 
-export const printReceipt = (
+export const generateReceiptHtml = (
   storeName: string,
   customerName: string,
   items: { product: Product; quantity: number }[],
   total: number,
   orderId?: string,
   orderDate?: string,
-  orderTime?: string
+  orderTime?: string,
+  autoPrint: boolean = true
 ) => {
   const currentDate = new Date();
   const dateStr = orderDate || currentDate.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
   const timeStr = orderTime || currentDate.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
   const receiptId = orderId || `INV-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
 
-  const html = `
+  return `
     <!DOCTYPE html>
     <html lang="id">
     <head>
@@ -136,21 +137,30 @@ export const printReceipt = (
         <p>Terima Kasih</p>
         <p>Barang yang sudah dibeli tidak dapat ditukar/dikembalikan.</p>
       </div>
-      
+      ${autoPrint ? `
       <script>
         window.onload = function() {
           setTimeout(function() {
             window.print();
-            setTimeout(function() { window.close(); }, 500);
           }, 500);
         }
       </script>
+      ` : ''}
     </body>
     </html>
   `;
+};
 
-  // Create an invisible iframe for printing to avoid opening new visible windows if possible,
-  // but for broad compatibility, opening a small popup window is more robust for printing.
+export const printReceipt = (
+  storeName: string,
+  customerName: string,
+  items: { product: Product; quantity: number }[],
+  total: number,
+  orderId?: string,
+  orderDate?: string,
+  orderTime?: string
+) => {
+  const html = generateReceiptHtml(storeName, customerName, items, total, orderId, orderDate, orderTime, true);
   const printWindow = window.open('', '_blank', 'width=400,height=600,left=200,top=200');
   if (printWindow) {
     printWindow.document.open();

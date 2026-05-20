@@ -26,7 +26,7 @@ import {
 } from "@/lib/productsStore";
 import { addLocalOrder } from "@/lib/ordersStore";
 import { logAudit } from "@/lib/auditStore";
-import { printReceipt } from "@/lib/printUtils";
+import { printReceipt, generateReceiptHtml } from "@/lib/printUtils";
 
 interface CartItem {
   product: Product;
@@ -45,6 +45,7 @@ export default function PosPage() {
   
   const [favorites, setFavorites] = useState<number[]>([]);
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
 
   // Quick cashier mode (barcode scanner / fast keyboard input simulation)
   const [isQuickMode, setIsQuickMode] = useState(false);
@@ -255,6 +256,10 @@ export default function PosPage() {
 
   const handleCheckoutPrint = () => {
     if (cart.length === 0) return;
+    setShowPrintPreview(true);
+  };
+
+  const confirmPrintCheckout = () => {
     const finalCustomerName = customerName.trim() || "Umum";
     
     processTransaction(finalCustomerName);
@@ -262,6 +267,7 @@ export default function PosPage() {
     // Print receipt
     printReceipt("Warung Berkah Jaya", finalCustomerName, cart, total);
 
+    setShowPrintPreview(false);
     completeCheckoutUI();
   };
 
@@ -637,6 +643,62 @@ export default function PosPage() {
               </div>
             </motion.div>
           </>
+        )}
+      </AnimatePresence>
+
+      {/* Print Preview Modal */}
+      <AnimatePresence>
+        {showPrintPreview && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-sm overflow-hidden border border-slate-100 dark:border-zinc-800 shadow-2xl flex flex-col max-h-[90vh]"
+            >
+              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-zinc-800 shrink-0">
+                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Printer className="h-4 w-4" />
+                  Preview Struk
+                </h3>
+                <button 
+                  onClick={() => setShowPrintPreview(false)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-full bg-slate-50 hover:bg-slate-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              
+              <div className="flex-1 overflow-hidden p-4 bg-slate-50 dark:bg-zinc-950 flex justify-center">
+                <div className="bg-white shadow-sm border border-slate-200 w-[58mm] h-full overflow-y-auto overflow-x-hidden">
+                  <iframe 
+                    title="Print Preview"
+                    srcDoc={generateReceiptHtml("Warung Berkah Jaya", customerName.trim() || "Umum", cart, total, undefined, undefined, undefined, false)}
+                    className="w-[58mm] h-[400px] border-none scale-90 origin-top"
+                  />
+                </div>
+              </div>
+              
+              <div className="p-4 border-t border-slate-100 dark:border-zinc-800 shrink-0 bg-white dark:bg-zinc-900">
+                <p className="text-[10px] text-slate-500 text-center mb-3">Tekan Konfirmasi & Cetak untuk menyelesaikan transaksi.</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowPrintPreview(false)}
+                    className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 font-bold text-xs hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={confirmPrintCheckout}
+                    className="flex-1 py-3 rounded-xl bg-slate-900 hover:bg-black dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-white font-bold text-xs flex justify-center items-center gap-1.5 shadow-md transition-colors"
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    Selesaikan & Cetak
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>
