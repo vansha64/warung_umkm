@@ -93,3 +93,9 @@ body {
   color: hsl(var(--foreground));
   font-feature-settings: "rlig" 1, "calt" 1;
 }
+
+@layer base {
+  input, textarea, select {
+    @apply text-slate-900 dark:text-white;
+  }
+}
