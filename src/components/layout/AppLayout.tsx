@@ -34,6 +34,7 @@ const navigationItems = [
   { name: "Daftar Pesanan", href: "/orders", icon: ClipboardList, roles: ["owner", "cashier"] },
   { name: "Keuangan", href: "/finance", icon: Wallet, roles: ["owner"] },
   { name: "Inventori", href: "/inventory", icon: Package, roles: ["owner"] },
+  { name: "Pengaturan", href: "/pengaturan", icon: Settings, roles: ["owner"] },
 ];
 
 export default function AppLayout({ children }: AppLayoutProps) {
