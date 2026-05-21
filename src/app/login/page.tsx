@@ -27,15 +27,16 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
 
-    // Simple role verification logic for small business
-    if (username === "sri" && password === "owner123") {
-      login("sri", "owner");
-      router.push("/dashboard");
-    } else if (username === "kasir" && password === "kasir123") {
-      login("kasir", "cashier");
-      router.push("/pos");
+    const result = login(username, password);
+    
+    if (result.success) {
+      if (result.role === "owner") {
+        router.push("/dashboard");
+      } else {
+        router.push("/pos");
+      }
     } else {
-      setError("Username atau password salah!");
+      setError(result.error || "Login gagal");
     }
   };
 
